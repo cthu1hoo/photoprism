@@ -464,7 +464,8 @@ func (c *Config) Demo() bool {
 
 // Sponsor reports if your continuous support helps to pay for development and operating expenses.
 func (c *Config) Sponsor() bool {
-	return c.options.Sponsor || c.Test()
+	return true;
+	//return c.options.Sponsor || c.Test()
 }
 
 // NoSponsor reports if the instance is not operated by a sponsor.
