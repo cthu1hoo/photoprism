@@ -73,6 +73,7 @@
     "karma-webpack": "^5.0.0",
     "luxon": "^2.4.0",
     "maplibre-gl": "^2.1.9",
+    "memoize-one": "^6.0.0",
     "mini-css-extract-plugin": "^2.6.1",
     "minimist": ">=1.2.5",
     "mocha": "^10.0.0",
@@ -122,9 +123,5 @@
     "npm": ">= 8.0.0",
     "yarn": "please use npm"
   },
-  "browserslist": [
-    "> 1%",
-    "not ie <= 9",
-    "last 3 versions"
-  ]
+  "browserslist": ">0.25% and last 2 years"
 }
