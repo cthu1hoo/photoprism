@@ -106,6 +106,10 @@ export const Languages = () => [
     value: "fr",
   },
   {
+    text: "Ελληνικά", // Greek
+    value: "el",
+  },
+  {
     text: "עברית", // Hebrew
     value: "he",
     rtl: true,
@@ -214,73 +218,6 @@ export const Languages = () => [
   },
 ];
 
-export const Themes = () => [
-  {
-    text: $gettext("Default"),
-    value: "default",
-    disabled: false,
-  },
-  {
-    text: $gettext("Grayscale"),
-    value: "grayscale",
-    disabled: false,
-  },
-  {
-    text: $gettext("Vanta"),
-    value: "vanta",
-    disabled: false,
-  },
-  {
-    text: $gettext("Abyss"),
-    value: "abyss",
-    disabled: false,
-  },
-  {
-    text: $gettext("Moonlight"),
-    value: "moonlight",
-    disabled: false,
-  },
-  {
-    text: $gettext("Onyx"),
-    value: "onyx",
-    disabled: false,
-  },
-  {
-    text: $gettext("Cyano"),
-    value: "cyano",
-    disabled: false,
-  },
-  {
-    text: $gettext("Lavender"),
-    value: "lavender",
-    disabled: false,
-  },
-  {
-    text: $gettext("Gemstone"),
-    value: "gemstone",
-    disabled: false,
-  },
-  {
-    text: $gettext("Raspberry"),
-    value: "raspberry",
-    disabled: false,
-  },
-  {
-    text: $gettext("Seaweed"),
-    value: "seaweed",
-    disabled: false,
-  },
-  {
-    text: $gettext("Shadow"),
-    value: "shadow",
-    disabled: false,
-  },
-  {
-    text: $gettext("Yellowstone"),
-    value: "yellowstone",
-    disabled: false,
-  },
-];
 export const MapsAnimate = () => [
   {
     text: $gettext("None"),

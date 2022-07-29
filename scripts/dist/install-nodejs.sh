@@ -1,6 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-PATH="/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/scripts"
+# Installs NodeJS, NPM and TestCafe on Linux
+# bash <(curl -s https://raw.githubusercontent.com/photoprism/photoprism/develop/scripts/dist/install-nodejs.sh)
+
+PATH="/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/scripts:$PATH"
 
 # abort if not executed as root
 if [[ $(id -u) != "0" ]]; then
@@ -18,5 +21,6 @@ curl -sL $SETUP_URL | bash  -
 apt-get update && apt-get -qq install nodejs
 npm install --unsafe-perm=true --allow-root -g npm testcafe
 npm config set cache ~/.cache/npm
+npm update --unsafe-perm=true --allow-root -g
 
 echo "Done."

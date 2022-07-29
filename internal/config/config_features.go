@@ -1,10 +1,6 @@
 package config
 
-// Sponsor checks if sponsor features should be enabled.
-func Sponsor() bool {
-	return true;
-	//return Env(EnvDemo, EnvSponsor, EnvTest)
-}
+var Sponsor = true
 
 // DisableWebDAV checks if the built-in WebDAV server should be disabled.
 func (c *Config) DisableWebDAV() bool {
@@ -54,7 +50,7 @@ func (c *Config) DisableTensorFlow() bool {
 	return c.options.DisableTensorFlow
 }
 
-// DisableFaces checks if facial recognition is disabled.
+// DisableFaces checks if face recognition is disabled.
 func (c *Config) DisableFaces() bool {
 	if c.DisableTensorFlow() || c.options.DisableFaces {
 		return true

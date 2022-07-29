@@ -130,20 +130,22 @@ func (imp *Import) Start(opt ImportOptions) fs.Done {
 				return errors.New("canceled")
 			}
 
-			isDir := info.IsDir()
+			isDir, _ := info.IsDirOrSymlinkToDir()
 			isSymlink := info.IsSymlink()
 
 			if skip, result := fs.SkipWalk(fileName, isDir, isSymlink, done, ignore); skip {
-				if isDir && result != filepath.SkipDir {
-					if fileName != importPath {
-						directories = append(directories, fileName)
-					}
+				if !isDir || result == filepath.SkipDir {
+					return result
+				}
 
-					folder := entity.NewFolder(entity.RootImport, fs.RelName(fileName, imp.conf.ImportPath()), fs.BirthTime(fileName))
+				if fileName != importPath {
+					directories = append(directories, fileName)
+				}
 
-					if err := folder.Create(); err == nil {
-						log.Infof("import: added folder /%s", folder.Path)
-					}
+				folder := entity.NewFolder(entity.RootImport, fs.RelName(fileName, imp.conf.ImportPath()), fs.BirthTime(fileName))
+
+				if err := folder.Create(); err == nil {
+					log.Infof("import: added folder /%s", folder.Path)
 				}
 
 				return result
@@ -160,6 +162,8 @@ func (imp *Import) Start(opt ImportOptions) fs.Done {
 			// Check if file exists and is not empty.
 			if err != nil {
 				log.Warnf("import: %s", err)
+				return nil
+			} else if mf.Empty() {
 				return nil
 			}
 
@@ -245,9 +249,9 @@ func (imp *Import) Start(opt ImportOptions) fs.Done {
 	}
 
 	if filesImported > 0 {
-		// Run facial recognition if enabled.
+		// Run face recognition if enabled.
 		if w := NewFaces(imp.conf); w.Disabled() {
-			log.Debugf("import: skipping facial recognition")
+			log.Debugf("import: skipping face recognition")
 		} else if err := w.Start(FacesOptionsDefault()); err != nil {
 			log.Errorf("import: %s", err)
 		}
