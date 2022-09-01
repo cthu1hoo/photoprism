@@ -28,6 +28,7 @@ type Options struct {
 	Public                bool          `yaml:"Public" json:"-" flag:"public"`
 	AdminPassword         string        `yaml:"AdminPassword" json:"-" flag:"admin-password"`
 	LogLevel              string        `yaml:"LogLevel" json:"-" flag:"log-level"`
+	Prod                  bool          `yaml:"Prod" json:"Prod" flag:"prod"`
 	Debug                 bool          `yaml:"Debug" json:"Debug" flag:"debug"`
 	Trace                 bool          `yaml:"Trace" json:"Trace" flag:"Trace"`
 	Test                  bool          `yaml:"-" json:"Test,omitempty" flag:"test"`
@@ -136,8 +137,8 @@ type Options struct {
 //
 // 1. Load: This will initialize options from a yaml config file.
 //
-// 2. SetContext: Which comes after Load and overrides
-//    any previous options giving an option two override file configs through the CLI.
+//  2. SetContext: Which comes after Load and overrides
+//     any previous options giving an option two override file configs through the CLI.
 func NewOptions(ctx *cli.Context) *Options {
 	c := &Options{}
 

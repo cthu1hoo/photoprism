@@ -37,19 +37,20 @@ endif
 all: dep build-js
 dep: dep-tensorflow dep-npm dep-js dep-go
 build: build-go
+pull: docker-pull
 test: test-js test-go
 test-go: reset-sqlite run-test-go
 test-pkg: reset-sqlite run-test-pkg
 test-api: reset-sqlite run-test-api
 test-short: reset-sqlite run-test-short
 test-mariadb: reset-acceptance run-test-mariadb
+acceptance-run-chromium: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth acceptance-auth-sqlite-stop acceptance-sqlite-restart acceptance acceptance-sqlite-stop
+acceptance-run-chromium-short: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth-short acceptance-auth-sqlite-stop acceptance-sqlite-restart acceptance-short acceptance-sqlite-stop
 acceptance-auth-run-chromium: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth acceptance-auth-sqlite-stop
 acceptance-public-run-chromium: storage/acceptance acceptance-sqlite-restart acceptance acceptance-sqlite-stop
+acceptance-run-firefox: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth-firefox acceptance-auth-sqlite-stop acceptance-sqlite-restart acceptance-firefox acceptance-sqlite-stop
 acceptance-auth-run-firefox: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth-firefox acceptance-auth-sqlite-stop
 acceptance-public-run-firefox: storage/acceptance acceptance-sqlite-restart acceptance-firefox acceptance-sqlite-stop
-acceptance-run-chromium-short: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth-short acceptance-auth-sqlite-stop acceptance-sqlite-restart acceptance-short acceptance-sqlite-stop
-acceptance-run-chromium: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth acceptance-auth-sqlite-stop acceptance-sqlite-restart acceptance acceptance-sqlite-stop
-acceptance-run-firefox: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth-firefox acceptance-auth-sqlite-stop acceptance-sqlite-restart acceptance-firefox acceptance-sqlite-stop
 test-all: test acceptance-run-chromium
 fmt: fmt-js fmt-go
 clean-local: clean-local-config clean-local-cache
@@ -65,7 +66,7 @@ fix-permissions:
 	@if [ $(UID) != 0 ]; then\
 		echo "Running \"chown --preserve-root -Rcf $(UID):$(GID) /go /photoprism /opt/photoprism /tmp/photoprism\". Please wait."; \
 		sudo chown --preserve-root -Rcf $(UID):$(GID) /go /photoprism /opt/photoprism /tmp/photoprism || true;\
-		echo "Running \"chmod --preserve-root -Rcf u+rwX /go/src/github.com/photoprism/photoprism/* /photoprism /opt/photoprism /tmp/photoprism\". Please wait.";\
+		echo "Running \"chmod --preserve-root -Rcf u+rwX /go/src/github.com/photoprism/* /photoprism /opt/photoprism /tmp/photoprism\". Please wait.";\
 		sudo chmod --preserve-root -Rcf u+rwX /go/src/github.com/photoprism/photoprism/* /photoprism /opt/photoprism /tmp/photoprism || true;\
 		echo "Done."; \
 	else\
@@ -140,10 +141,10 @@ generate:
 	go generate ./pkg/... ./internal/...
 	go fmt ./pkg/... ./internal/...
 	# revert unnecessary pot file change
-	POT_UNCHANGED='1 file changed, 1 insertion(+), 1 deletion(-)'
-	@if [ ${$(shell git diff --shortstat assets/locales/messages.pot):1:45} == $(POT_UNCHANGED) ]; then\
-		git checkout -- assets/locales/messages.pot;\
-	fi
+	# POT_UNCHANGED='1 file changed, 1 insertion(+), 1 deletion(-)'
+	# @if [ ${$(shell git diff --shortstat assets/locales/messages.pot):1:45} == $(POT_UNCHANGED) ]; then\
+	# 	git checkout -- assets/locales/messages.pot;\
+	# fi
 clean-local-assets:
 	rm -rf $(BUILD_PATH)/assets/*
 clean-local-cache:
@@ -201,27 +202,24 @@ watch-js:
 test-js:
 	$(info Running JS unit tests...)
 	(cd frontend && env NODE_ENV=development BABEL_ENV=test npm run test)
-acceptance-old:
-	$(info Running JS acceptance tests in Chrome...)
-	(cd frontend &&	npm run acceptance --first="chromium:headless" --second=plus --third=public && cd ..)
 acceptance:
-	$(info Running JS acceptance tests in Chrome...)
-	(cd frontend &&	npm run acceptance --first="chromium:headless" --second="^(Common|Core)\:*" --third=public --fourth="tests/acceptance" && cd ..)
+	$(info Running public-mode tests in 'chromium:headless'...)
+	(cd frontend &&	npm run testcafe -- chromium:headless --test-grep "^(Common|Core)\:*" --test-meta mode=public --config-file ./testcaferc.json "tests/acceptance")
 acceptance-short:
 	$(info Running JS acceptance tests in Chrome...)
-	(cd frontend &&	npm run acceptance-short --first="chromium:headless" --second="^(Common|Core)\:*" --third=public --fourth="tests/acceptance" && cd ..)
+	(cd frontend &&	npm run testcafe -- chromium:headless --test-grep "^(Common|Core)\:*" --test-meta mode=public,type=short --config-file ./testcaferc.json "tests/acceptance")
 acceptance-firefox:
 	$(info Running JS acceptance tests in Firefox...)
-	(cd frontend &&	npm run acceptance --first="firefox:headless" --second="^(Common|Core)\:*" --third=public --fourth="tests/acceptance" && cd ..)
+	(cd frontend &&	npm run testcafe -- firefox:headless --test-grep "^(Common|Core)\:*" --test-meta mode=public --config-file ./testcaferc.json "tests/acceptance")
 acceptance-auth:
 	$(info Running JS acceptance-auth tests in Chrome...)
-	(cd frontend &&	npm run acceptance --first="chromium:headless" --second="^(Common|Core)\:*" --third=auth --fourth="tests/acceptance" && cd ..)
+	(cd frontend &&	npm run testcafe -- chromium:headless --test-grep "^(Common|Core)\:*" --test-meta mode=auth --config-file ./testcaferc.json "tests/acceptance")
 acceptance-auth-short:
 	$(info Running JS acceptance-auth tests in Chrome...)
-	(cd frontend &&	npm run acceptance-short --first="chromium:headless" --second="^(Common|Core)\:*" --third=auth --fourth="tests/acceptance" && cd ..)
+	(cd frontend &&	npm run testcafe -- chromium:headless --test-grep "^(Common|Core)\:*" --test-meta mode=auth,type=short --config-file ./testcaferc.json "tests/acceptance")
 acceptance-auth-firefox:
 	$(info Running JS acceptance-auth tests in Firefox...)
-	(cd frontend &&	npm run acceptance --first="firefox:headless" --second="^(Common|Core)\:*" --third=auth --fourth="tests/acceptance" && cd ..)
+	(cd frontend &&	npm run testcafe -- firefox:headless --test-grep "^(Common|Core)\:*" --test-meta mode=auth --config-file ./testcaferc.json "tests/acceptance")
 reset-mariadb-testdb:
 	$(info Resetting testdb database...)
 	mysql < scripts/sql/reset-testdb.sql
@@ -272,12 +270,19 @@ test-coverage:
 	$(info Running all Go tests with code coverage report...)
 	go test -parallel 1 -count 1 -cpu 1 -failfast -tags slow -timeout 30m -coverprofile coverage.txt -covermode atomic ./pkg/... ./internal/...
 	go tool cover -html=coverage.txt -o coverage.html
+docker-pull:
+	docker pull mariadb:10.8
+	docker pull photoprism/traefik:latest
+	docker pull photoprism/develop:bookworm
+	docker pull photoprism/develop:bookworm-slim
+	docker pull photoprism/photoprism:preview
+	docker pull photoprism/photoprism:latest
 docker-develop: docker-develop-latest
 docker-develop-all: docker-develop-latest docker-develop-other
 docker-develop-latest: docker-develop-debian docker-develop-armv7
 docker-develop-debian: docker-develop-bookworm docker-develop-bookworm-slim
 docker-develop-ubuntu: docker-develop-jammy
-docker-develop-other: docker-develop-bullseye docker-develop-bullseye-slim docker-develop-jammy
+docker-develop-other: docker-develop-bullseye docker-develop-bullseye-slim docker-develop-buster docker-develop-jammy
 docker-develop-bookworm:
 	docker pull --platform=amd64 debian:bookworm-slim
 	docker pull --platform=arm64 debian:bookworm-slim
@@ -287,8 +292,8 @@ docker-develop-bookworm-slim:
 	docker pull --platform=arm64 debian:bookworm-slim
 	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 bookworm-slim /bookworm-slim
 docker-develop-bullseye:
-	docker pull --platform=amd64 golang:1.18-bullseye
-	docker pull --platform=arm64 golang:1.18-bullseye
+	docker pull --platform=amd64 golang:1-bullseye
+	docker pull --platform=arm64 golang:1-bullseye
 	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 bullseye /bullseye
 docker-develop-bullseye-slim:
 	docker pull --platform=amd64 debian:bullseye-slim
@@ -298,8 +303,8 @@ docker-develop-armv7:
 	docker pull --platform=arm debian:bookworm-slim
 	scripts/docker/buildx.sh develop linux/arm armv7 /armv7
 docker-develop-buster:
-	docker pull --platform=amd64 golang:buster
-	docker pull --platform=arm64 golang:buster
+	docker pull --platform=amd64 golang:1-buster
+	docker pull --platform=arm64 golang:1-buster
 	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 buster /buster
 docker-develop-impish:
 	docker pull --platform=amd64 ubuntu:impish
@@ -431,16 +436,14 @@ docker-local-develop-bookworm:
 	docker pull debian:bookworm-slim
 	scripts/docker/build.sh develop bookworm /bookworm
 docker-local-develop-bullseye:
-	docker pull golang:1.18-bullseye
+	docker pull golang:1-bullseye
 	scripts/docker/build.sh develop bullseye /bullseye
 docker-local-develop-buster:
-	docker pull golang:1.18-buster
+	docker pull golang:1-buster
 	scripts/docker/build.sh develop buster /buster
 docker-local-develop-impish:
 	docker pull ubuntu:impish
 	scripts/docker/build.sh develop impish /impish
-docker-pull:
-	docker pull photoprism/photoprism:preview photoprism/photoprism:latest
 docker-ddns:
 	docker pull golang:alpine
 	scripts/docker/buildx-multi.sh ddns linux/amd64,linux/arm64 $(BUILD_DATE)
@@ -491,4 +494,5 @@ tidy:
     install-go install-darktable install-tensorflow devtools tar.gz fix-permissions rootshell help dep-acceptance \
     docker-local docker-local-all docker-local-bookworm docker-local-bullseye docker-local-buster docker-local-impish \
     docker-local-develop docker-local-develop-all docker-local-develop-bookworm docker-local-develop-bullseye \
-    docker-local-develop-buster docker-local-develop-impish test-mariadb reset-acceptance run-test-mariadb;
+    docker-local-develop-buster docker-local-develop-impish test-mariadb reset-acceptance run-test-mariadb testcafe \
+    pull docker-pull;
