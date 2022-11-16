@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
@@ -52,6 +53,15 @@ var UnwantedDescriptions = map[string]bool{
 
 var LowerCaseRegexp = regexp.MustCompile("[a-z\\d_\\-]+")
 
+// SanitizeUnicode returns the string as valid Unicode with whitespace trimmed.
+func SanitizeUnicode(s string) string {
+	if s == "" {
+		return ""
+	}
+
+	return clean.Unicode(strings.TrimSpace(s))
+}
+
 // SanitizeString removes unwanted character from an exif value string.
 func SanitizeString(s string) string {
 	if s == "" {
@@ -60,11 +70,11 @@ func SanitizeString(s string) string {
 
 	if strings.HasPrefix(s, "string with binary data") {
 		return ""
+	} else if strings.HasPrefix(s, "(Binary data") {
+		return ""
 	}
 
-	s = strings.TrimSpace(s)
-
-	return strings.Replace(s, "\"", "", -1)
+	return SanitizeUnicode(strings.Replace(s, "\"", "", -1))
 }
 
 // SanitizeUID normalizes unique IDs found in XMP or Exif metadata.
